@@ -1,0 +1,7 @@
+﻿<div class="panel panel-primary">
+    {% for s in suggs %}
+    <button onclick= "removeGenre('{{s}}')" type="button" class="btn btn-default btn-sm">
+        {{s}}  <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+    </button>
+    {% endfor %}
+</div>

@@ -1,0 +1,10 @@
+﻿<ul class="list-group">
+{% for s in suggs %}
+    <li class="list-group-item" role="presentation">
+        <span>{{s}}</span>
+        <button onclick="addGenre('{{s}}')" type="button" style="float:right" class="btn btn-default btn-sm">
+            <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add
+        </button>
+    </li>
+{% endfor %}
+</ul>

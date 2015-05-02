@@ -18,12 +18,12 @@ class Artists(models.Model):
 
 
 class Genres(models.Model):
+    id = models.IntegerField(db_column='genreId', primary_key=True)
     level = models.IntegerField()
     name = models.CharField(max_length=30)
     songId = models.ForeignKey('Songs', db_column='songId')  # Field name made lowercase.
 
     class Meta:
-        managed = False
         db_table = 'Genres'
         unique_together = (('level', 'name', 'songId'),)
 
