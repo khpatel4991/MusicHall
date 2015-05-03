@@ -1,7 +1,7 @@
 """
 Definition of urls for DjangoWebProject1.
 """
-
+import os
 from datetime import datetime
 from django.conf.urls import patterns, url
 from app.forms import BootstrapAuthenticationForm
@@ -18,12 +18,16 @@ urlpatterns = patterns('',
     url(r'^filtersong', 'app.views.song_filter', name='filterSongs'),
     url(r'^filterartists', 'app.views.artist_filter', name='filterArtists'),
     url(r'^filtergenres', 'app.views.genre_filter', name='filterGenres'),
-    url(r'^updateplaylist', 'app.views.update_playlist', name='updatePlaylist'),
+    url(r'^updateplaylist/(?P<do_work>\d+)', 'app.views.update_playlist', name='updatePlaylist'),
     url(r'^addsong', 'app.views.add_song', name='addSong'),
     url(r'^addartist', 'app.views.add_artist', name='addArtist'),
     url(r'^addgenre', 'app.views.add_genre', name='addGenre'),
+    url(r'^removesong', 'app.views.remove_song', name='removeSong'),
     url(r'^removeartist', 'app.views.remove_artist', name='removeArtist'),
     url(r'^removegenre', 'app.views.remove_genre', name='removeGenre'),
+    url(r'^yplayer', 'app.views.yplayer', name='yPlayer'),
+    #url(r'^getids', 'app.views.getids', name='getIds'),
+    #url(r'^oauth2callback', 'app.views.auth_return'),
     url(r'^contact$', 'app.views.contact', name='contact'),
     url(r'^about', 'app.views.about', name='about'),
     url(r'^login/$',

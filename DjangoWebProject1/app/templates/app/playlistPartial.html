@@ -1,7 +1,13 @@
-﻿{% if top_songs %}
+﻿{% if final_songs %}
 <ul class="list-group">
-    {% for song in top_songs %}
-        <li class="list-group-item"><a href="{{ song.url }}/">{{ song.songName }}</a></li>
+    {% for song in final_songs %}
+        <li class="list-group-item">
+            <a href="{{ song.url }}/" target="_blank">{{ song.songName }} - {{song.artistId.artistName}}</a>
+            ({{song.crawlDelta}})
+        <button onclick="removeSong('{{song.youtubeId}}')" style="float:right" type="button" class="btn btn-default btn-sm">
+        {{s.artistName}}  <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+    </button>
+        </li>
     {% endfor %}
 </ul>
 {% else %}
