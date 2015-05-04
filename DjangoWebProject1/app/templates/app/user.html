@@ -1,0 +1,92 @@
+﻿{% extends "app/layout.html" %}
+{% block content %}
+<br />
+
+<div class="row">
+
+    <div id="LeftPane" class="col-lg-3">
+    {% load staticfiles %}
+
+
+        <h3>Pick ur Songs</h3>
+        {%csrf_token%}
+        <div>
+        <div class="input-group">
+            <input type="text" class="form-control blackBackground" id="filterSong" placeholder="Search Songs">
+            
+            <span class="input-group-btn">
+                <button class="btn btn-default" onclick="hideSongList()" type="button">X</button>
+            </span>            
+        </div>
+        </div>
+        <div id="filteredSongs"></div>
+
+
+    
+    <h3>Pick ur Artists</h3>
+    {%csrf_token%}
+    <div class="input-group">
+        <input type="text" class="form-control blackBackground" id="filterArtist" placeholder="Search Artists...">
+        <span class="input-group-btn">
+            <button class="btn btn-default" onclick="hideArtistList()" type="button">X</button>
+        </span>  
+    </div>
+    <div id="filteredArtists"></div>
+
+ 
+
+    <h3>Pick ur Genres</h3>
+    {%csrf_token%}
+    <div class="input-group">
+        <input type="text" class="form-control blackBackground" id="filterGenre" placeholder="Search Genres...">
+        <span class="input-group-btn">
+            <button class="btn btn-default" onclick="hideGenreList()" type="button">X</button>
+        </span>  
+    </div>
+    <div id="filteredGenres"></div>
+
+    <h3>Pick ur Country</h3>
+    {%csrf_token%}
+    <div class="input-group">
+        <input type="text" class="form-control blackBackground" id="filterCountry" placeholder="Search Country...">
+        <span class="input-group-btn">
+            <button class="btn btn-default" onclick="hideCountryList()" type="button">X</button>
+        </span>  
+    </div>
+    <div id="filteredCountries"></div>
+    </div>
+
+
+    <div class="col-lg-6">
+
+    <button onclick="youtubeThingy(0)" type="button" style="float:right" class="btn btn-success btn-sm ">
+        <span class="glyphicon glyphicon-play" aria-hidden="true"></span> Play All
+    </button>   
+        <button onclick="youtubeThingy(1)" type="button" style="float:right" class="btn btn-primary btn-sm ">
+        <span class="glyphicon glyphicon-random" aria-hidden="true"></span> Shuffle and Play
+    </button>
+
+        <br />
+        <br />
+    <div id="playlist_place"></div>
+    </div>
+
+
+    <div id="RightPane" class="col-lg-3">            
+
+    <h3>Songs Panel</h3>
+    <div id="songPanel" class="panel panel-primary blackBackground"><img id="loaderImg" src="{% static 'app/ajax-loader.gif' %}" /></div>
+
+    <h3>Artists Panel</h3>
+    <div id="artistPanel" class="panel panel-primary blackBackground"><img id="loaderImg" src="{% static 'app/ajax-loader.gif' %}" /></div>
+                   
+    <h3>Genres Panel</h3>
+    <div id="genrePanel" class="panel panel-primary blackBackground"><img src="{% static 'app/ajax-loader.gif' %}" /></div>
+
+    <h3>Countries Panel</h3>
+    <div id="countryPanel" class="panel panel-primary blackBackground"><img src="{% static 'app/ajax-loader.gif' %}" /></div>
+    </div>
+
+</div>
+
+{% endblock %}

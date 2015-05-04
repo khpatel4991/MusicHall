@@ -1,0 +1,12 @@
+﻿{% if suggs %}
+<ul class="list-group scrollable">
+{% for s in suggs %}
+    <li class="list-group-item list-group-item-info" role="presentation">
+        <button onclick="addCountry('{{s}}')" type="button" style="float:right" class="btn btn-default btn-sm">
+            <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add
+        </button>        
+        <p class="list-group-item-text">{{s}}</p>
+    </li>
+{% endfor %}
+</ul>
+{% endif %}

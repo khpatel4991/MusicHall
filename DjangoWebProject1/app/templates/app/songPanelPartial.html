@@ -1,0 +1,9 @@
+﻿{% if suggs %}
+{% for s in suggs %}
+    <button onclick="removeSong('{{s.youtubeId}}')" type="button" class="btn btn-default btn-sm">
+        {{s.songName}} --  {{s.artistId.artistName}} <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+    </button>
+{% endfor %}
+{% else %}
+NO Songs Selected
+{% endif %}
