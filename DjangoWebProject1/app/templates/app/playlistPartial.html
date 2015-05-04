@@ -1,13 +1,16 @@
 ﻿{% if final_songs %}
-<ul class="list-group">
+Displaying {{final_songs|length}} songs
+<ul class="list-group scrollable" style="height:1000px">
     {% for song in final_songs %}
-        <li class="list-group-item">
-            <a href="{{ song.url }}/" target="_blank">{{ song.songName }} - {{song.artistId.artistName}}</a>
-            ({{song.crawlDelta}})
+    <li class="list-group-item blackBackground">
         <button onclick="removeSong('{{song.youtubeId}}')" style="float:right" type="button" class="btn btn-default btn-sm">
-        {{s.artistName}}  <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
-    </button>
-        </li>
+            {{s.artistName}}  <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+        </button>
+        <div><a href="{{ song.url }}/" target="_blank"><img src="http://img.youtube.com/vi/{{song.youtubeId}}/3.jpg" /></a>
+        {{ song.songName }}
+        -{{song.artistId.artistName}}
+       </div>
+    </li>
     {% endfor %}
 </ul>
 {% else %}

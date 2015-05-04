@@ -1,10 +1,33 @@
-﻿html, body {
+﻿body {
     height:100%;
     width: 100%;
+    /*background: linear-gradient(90deg, #3AA9B2, #488894); /* Standard syntax (must be last) */
+    font-family: 'Fjalla One', sans-serif;
+    font-weight: 400;
+    font-stretch:expanded;
+    color:#C71585;
+    background: #333 url('http://subtlepatterns.subtlepatterns.netdna-cdn.com/patterns/low_contrast_linen.png');    
+}
+
+h3 {
+    font-family: 'Fjalla One', sans-serif;
+}
+
+.blackBackground {
+    background-color: black;
 }
 
 
-/*ul#artistPartialList {
-    overflow:auto;
-    overflow-y:scroll;
-}*/
+a#titlehref {
+    font-size: 35px;
+    font-family: 'Pacifico', cursive;
+    color: white;
+
+}
+
+.scrollable {
+    height: 350px;
+    overflow-x:hidden;
+    overflow-y:scroll;    
+}
+

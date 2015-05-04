@@ -86,10 +86,13 @@ def update_playlist(request, do_work):
     song_list = []
     artist_list = []
     genre_list = []
+    country_list = []
 
     session_songs = []
     artist_songs = []
     genre_songs = []
+    country_songs = []
+    top_songs = []
 
     final_songs = []
     #check for session vars
@@ -99,40 +102,65 @@ def update_playlist(request, do_work):
         artist_list = request.session['artistList']
     if request.session.__contains__('genreList'):
         genre_list = request.session['genreList']
+    if request.session.__contains__('countryList'):
+        country_list = request.session['countryList']
+
+    #Logic Part
+    max_from_category = 25
 
     if song_list:
         session_songs = get_songs_from_session(song_list)
 
-    if not artist_list and not genre_list:
-        print 'no cached genre or artist'
-        top_songs = Songs.objects.order_by('-crawlDelta')[:25]
-        if song_list:
-            final_songs = combine_querysets(top_songs, session_songs)
-        else:
-            final_songs = top_songs
-    #Artist OR Genre List is available
-    else:
-        if artist_list:
-            artist_songs = get_artist_songs_from_session(artist_list)
-            final_songs = artist_songs
-        if genre_list:
-            genre_songs = get_genre_songs_from_session(genre_list)
-            final_songs = genre_songs
+    if artist_list:
+        artist_songs = get_artist_songs_from_session(artist_list, max_from_category)
 
-        if artist_list and genre_list:
-            final_songs = combine_querysets(artist_songs, genre_songs)
+    if genre_list:
+        genre_songs = get_genre_songs_from_session(genre_list, max_from_category)
+    #print country_list
+    if country_list:
+        country_songs = get_country_songs_from_session(country_list, max_from_category)
+    #print country_songs
+    
+    if not artist_list and not genre_list and not country_list:
+        top_songs = Songs.objects.order_by('-crawlDelta')[:max_from_category]
+    
+    print 'a' + str(len(session_songs))
+    print 'b' + str(len(artist_songs))
+    print 'c' + str(len(genre_songs))
+    print 'd' + str(len(country_songs))
+    print 'e' + str(len(top_songs))
+
+    final_songs = combine_querysets(session_songs, artist_songs, genre_songs, country_songs, top_songs)
+    print 'Success on return with *arg'
+
+    #if not artist_list and not genre_list:
+    #    print 'no cached genre or artist'
+    #    top_songs = Songs.objects.order_by('-crawlDelta')[:max_from_category]
+    #    if song_list:
+    #        final_songs = combine_querysets(top_songs, session_songs)
+    #    else:
+    #        final_songs = top_songs
+    ##Artist OR Genre List is available
+    #else:
+    #    if artist_list:
+    #        artist_songs = get_artist_songs_from_session(artist_list, max_from_category)
+    #        final_songs = artist_songs
+    #    if genre_list:
+    #        genre_songs = get_genre_songs_from_session(genre_list, max_from_category)
+    #        final_songs = genre_songs
+
+    #    if artist_list and genre_list:
+    #        final_songs = combine_querysets(artist_songs, genre_songs, max_from_category)
         
-        if song_list:
-            final_songs = combine_querysets(final_songs, session_songs)
+    #    if song_list:
+    #        final_songs = combine_querysets(final_songs, session_songs)
 
     #Save to session, current playlist
-
     final_list = []
     for s in final_songs:
         final_list.append(s.youtubeId)
     request.session['playlist'] = final_list
-
-    print  request.session['playlist']
+    
     context = RequestContext(request, {
         'final_songs': final_songs,
     })
@@ -140,19 +168,33 @@ def update_playlist(request, do_work):
         
     return render(request, 'app/playlistPartial.html', context)
 
-def combine_querysets(q1, q2):
-    return sorted(chain(q1, q2), key=attrgetter('crawlDelta'), reverse=True)
+def combine_querysets(q1, q2, q3, q4, q5):
+
+    lis = list(set(chain(q1, q2, q3, q4, q5)))
+    print len(lis)
+    return sorted(chain(lis), key=attrgetter('crawlDelta'), reverse=True)
 
 
 def get_songs_from_session(song_list):
-    return Songs.objects.filter(youtubeId__in=song_list).order_by('-crawlDelta')[:25]
+    return Songs.objects.filter(youtubeId__in=song_list).order_by('-crawlDelta')
 
-def get_artist_songs_from_session(artist_list):
-    return Songs.objects.filter(artistId__in=artist_list).order_by('-crawlDelta')[:25]
+def get_artist_songs_from_session(artist_list, max_results):
+    q = []
+    for i in artist_list:
+        q = list(chain(q, Songs.objects.filter(artistId__exact=i).order_by('-crawlDelta')[:max_results]))
+    return q
 
-def get_genre_songs_from_session(genre_list):
-    genre_songs_list = Genres.objects.filter(name__in=genre_list).values_list('songId')
-    return get_songs_from_session(genre_songs_list)
+def get_genre_songs_from_session(genre_list, max_results):
+    q = []
+    for i in genre_list:
+        song_list = Genres.objects.filter(name__exact=i).values_list('songId', flat=True)
+        q = list(chain(q, Songs.objects.filter(youtubeId__in=song_list).order_by('-crawlDelta')[:25]))
+    return q
+    #genre_songs_list = Genres.objects.filter(name__in=genre_list).values_list('songId')
+    #return get_songs_from_session(genre_songs_list)
+
+def get_country_songs_from_session(country_list, max_results):
+    return Songs.objects.filter(songCountry__in=country_list).order_by('-crawlDelta')[:max_results]
 
 def song_filter(request):
     print "in song filter"
@@ -204,7 +246,6 @@ def genre_filter(request):
     })
     return render(request, 'app/genresFilterPartial.html', context)
 
-
 def get_genres(max_results = 0, starts_with=''):
     genres_name_list = []
     genres_id_list = []
@@ -213,41 +254,63 @@ def get_genres(max_results = 0, starts_with=''):
     print genres_name_list
     return genres_name_list
 
+#COuntry Part
+def country_filter(request):
+    print "in country filter"
+    search_text = ''
+    if request.method == 'POST':
+        search_text = request.POST['search_text']
+        print search_text
+    suggs = get_countries(search_text)
+    context = RequestContext(request, {
+        'suggs': suggs,
+    })
+    return render(request, 'app/countriesFilterPartial.html', context)
+
+def get_countries(starts_with=''):
+    countries_name_list = []
+    if starts_with is not '':
+        countries_name_list = Songs.objects.filter(songCountry__icontains=starts_with).values_list('songCountry', flat=True).distinct()
+    print countries_name_list
+    return countries_name_list
+
+
 def add_song(request):
     print 'in song add'
     song_to_add = ''
     song_list = []
+    playlist = []
     if request.session.__contains__('songList'):
         song_list = request.session['songList']
         playlist = request.session['playlist']
-        if request.method == 'POST':
-            song_to_add = request.POST['song_to_add']
-            if song_to_add not in song_list:
-                song_list.append(song_to_add)
-                playlist.append(song_to_add)
-                request.session['songList'] = song_list
-                request.session['playlist'] = playlist
-    print "check this"
-    print request.session['songList']
-    return HttpResponse(status=200)
     
+    if request.method == 'POST':
+        song_to_add = request.POST['song_to_add']
+        if song_to_add not in song_list:
+            song_list.append(song_to_add)
+            playlist.append(song_to_add)
+            request.session['songList'] = song_list
+            request.session['playlist'] = playlist
+
+    suggs = get_songs_from_session(song_list)
+    context = RequestContext(request, {
+        'suggs': suggs,
+    })
+    return render(request, 'app/songPanelPartial.html', context)    
 
 def add_artist(request):
     print 'in artist add'
     artist_to_add = ''
     artist_list = []
-    #CHeck if session is there
+
     if request.session.__contains__('artistList'):
         artist_list = request.session['artistList']
-        #Check if post request
-        if request.method == 'POST':
-            artist_to_add = request.POST['artist_to_add']
-            if artist_to_add not in artist_list:
-                artist_list.append(artist_to_add)
-                request.session['artistList'] = artist_list
-            else:
-                artist_list.append(artist_to_add)
-                request.session['artistList'] = artist_list
+
+    if request.method == 'POST':
+        artist_to_add = request.POST['artist_to_add']
+        if artist_to_add not in artist_list:
+            artist_list.append(artist_to_add)
+            request.session['artistList'] = artist_list
 
     suggs = get_artists_from_session(artist_list)
     context = RequestContext(request, {
@@ -269,7 +332,12 @@ def remove_song(request):
                 playlist.remove(song_to_remove)
                 request.session['songList'] = song_list
                 request.session['playlist'] = playlist
-    return HttpResponse(status=200)
+    
+    suggs = get_songs_from_session(request.session['songList'])
+    context = RequestContext(request, {
+        'suggs': suggs,
+    })
+    return render(request, 'app/songPanelPartial.html', context)
 
 
 def remove_artist(request):
@@ -305,9 +373,6 @@ def add_genre(request):
         if genre_to_add not in genre_list:
             genre_list.append(genre_to_add)
             request.session['genreList'] = genre_list
-        else:
-            genre_list.append(genre_to_add)
-            request.session['genreList'] = genre_list
     
     context = RequestContext(request, {
         'suggs': genre_list,
@@ -336,106 +401,63 @@ def remove_genre(request):
     })
     return render(request, 'app/genrePanelPartial.html', context)
 
-def yplayer(request):
+
+#Country Part
+def add_country(request):
+    print "in country add"
+    country_to_add = ''
+    country_list = []
+    #Check if Session is there
+    if request.session.__contains__('countryList'):
+        country_list = request.session['countryList']
+    if request.method == 'POST':
+        country_to_add = request.POST['country_to_add']
+        if country_to_add not in country_list:
+            country_list.append(country_to_add)
+            request.session['countryList'] = country_list
+    
     context = RequestContext(request, {
-        'ids': get_sorted_ids_from_session(request.session['playlist']),
+        'suggs': country_list,
+    })
+    return render(request, 'app/countryPanelPartial.html', context)
+
+
+def remove_country(request):
+    print "in country remove"
+    country_to_remove = ''
+    if request.method == 'POST':
+        country_to_remove = request.POST['country_to_remove']
+        print country_to_remove
+    if request.session.__contains__('countryList'):
+        lis = request.session['countryList']
+        if country_to_remove in lis:
+            lis.remove(country_to_remove)
+            request.session['countryList'] = lis
+    else:
+        new_list = []
+        new_list.append(country_to_remove)
+        request.session['countryList'] = new_list
+    
+    context = RequestContext(request, {
+        'suggs': request.session['countryList'],
+    })
+    return render(request, 'app/countryPanelPartial.html', context)
+
+
+def yplayer(request, shuffle):
+    print(type(int(shuffle)))
+    ids = get_sorted_ids_from_session(request.session['playlist'], int(shuffle))
+    context = RequestContext(request, {
+        'ids': ids,
     })
     return render(request, 'app/yplayer.html', context)
 
 
-def get_sorted_ids_from_session(song_list):
-    ids = Songs.objects.filter(youtubeId__in=song_list).values_list('youtubeId', flat=True).order_by('-crawlDelta')
+def get_sorted_ids_from_session(song_list, shuffle):
+    if shuffle:
+        ids = Songs.objects.filter(youtubeId__in=song_list).values_list('youtubeId', flat=True).order_by('?')
+    else:
+        ids = Songs.objects.filter(youtubeId__in=song_list).values_list('youtubeId', flat=True).order_by('-crawlDelta')
     ids2 = list(ids)
     data = json.dumps(ids2)
     return data
-#@login_required
-#def youtube_thingy(request):
-#    print '340'
-#    storage = Storage(CredentialsModel, 'id', request.user, 'credential')
-#    credential = storage.get()
-#    if credential is None or credential.invalid == True:
-#        print 'if 344 bad'
-#        FLOW.params['state'] = xsrfutil.generate_token(settings.SECRET_KEY, request.user)
-#        authorize_url = FLOW.step1_get_authorize_url()
-#        return HttpResponseRedirect(authorize_url)
-#    else:
-#        print 'else 349 good'
-#        http = httplib2.Http()
-#        http = credential.authorize(http)
-#        service = build("plus", "v1", http=http)
-#        activities = service.activities()
-#        activitylist = activities.list(collection='public',
-#                                       userId='me').execute()
-#        logging.info(activitylist)
-#        print activitylist
-#        return render_to_response('plus/welcome.html', {
-#                'activitylist': activitylist,
-#                })
-
-#@login_required
-#def auth_return(request):
-#    if not xsrfutil.validate_token(settings.SECRET_KEY, request.REQUEST['state'],
-#                                 request.user):
-#        return  HttpResponseBadRequest()
-#    credential = FLOW.step2_exchange(request.REQUEST)
-#    storage = Storage(CredentialsModel, 'id', request.user, 'credential')
-#    storage.put(credential)
-#    return HttpResponseRedirect("/")
-
-    #print '330'
-    #CLIENT_SECRETS_FILE = CLIENT_SECRETS = os.path.join(os.path.dirname(__file__), '..', 'client_secrets.json')
-
-    ## This variable defines a message to display if the CLIENT_SECRETS_FILE is
-    ## missing.
-    #MISSING_CLIENT_SECRETS_MESSAGE = """
-   
-    #To make this sample run you will need to populate the client_secrets.json file
-    #found at:
-
-    #   %s
-
-    #with information from the Developers Console
-    #https://console.developers.google.com/
-
-    #For more information about the client_secrets.json file format, please visit:
-    #https://developers.google.com/api-client-library/python/guide/aaa_client_secrets
-    #""" % os.path.abspath(os.path.join(os.path.dirname(__file__),
-    #                                   CLIENT_SECRETS_FILE))
-
-    ## This OAuth 2.0 access scope allows for full read/write access to the
-    ## authenticated user's account.
-    #YOUTUBE_READ_WRITE_SCOPE = "https://www.googleapis.com/auth/youtube"
-    #YOUTUBE_API_SERVICE_NAME = "youtube"
-    #YOUTUBE_API_VERSION = "v3"
-    
-    #flow = flow_from_clientsecrets(CLIENT_SECRETS_FILE,
-    #  message=MISSING_CLIENT_SECRETS_MESSAGE,
-    #  scope=YOUTUBE_READ_WRITE_SCOPE,
-    #  redirect_uri='http://localhost:8000/oauth2callback')
-
-    #storage = Storage("%s-oauth2.json" % sys.argv[0])
-    #credentials = storage.get()
-
-    #if credentials is None or credentials.invalid:
-    #  flags = argparser.parse_args()
-    #  credentials = run_flow(flow, storage, flags)
-
-    #youtube = build(YOUTUBE_API_SERVICE_NAME, YOUTUBE_API_VERSION,
-    #  http=credentials.authorize(httplib2.Http()))
-
-    ## This code creates a new, private playlist in the authorized user's channel.
-    #playlists_insert_response = youtube.playlists().insert(
-    #  part="snippet,status",
-    #  body=dict(
-    #    snippet=dict(
-    #      title="Test Playlist",
-    #      description="A private playlist created with the YouTube API v3"
-    #    ),
-    #    status=dict(
-    #      privacyStatus="private"
-    #    )
-    #  )
-    #).execute()
-
-    #print "New playlist id: %s" % playlists_insert_response["id"]
-    #return HttpResponse(status=200)
