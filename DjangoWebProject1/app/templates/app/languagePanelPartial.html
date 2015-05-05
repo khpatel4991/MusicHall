@@ -1,0 +1,10 @@
+﻿{% if suggs %}
+    {% for s in suggs %}
+    <button onclick= "removeLanguage('{{s}}')" type="button" class="btn btn-default btn-sm">
+        {{s}}  <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+    </button>
+    {% endfor %}
+
+{% else %}
+NO Language Selected.
+{% endif %}
