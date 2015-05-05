@@ -15,6 +15,9 @@ $(document).ready(function () {
     $.get("/addcountry/", function (data) {
         $('#countryPanel').html(data);
     });
+    $.get("/addlanguage/", function (data) {
+        $('#languagePanel').html(data);
+    });
 
 });
 
@@ -150,6 +153,35 @@ function searchSuccessCountry(data, textStatus, jqXHR) {
     $('#filteredCountries').html(data);
 }
 
+//Filter Language
+$(function () {
+    $('#filterLanguage').keyup(function () {
+        console.log($('#filterLanguage').val());
+        if ($('#filterLanguage').val().length > 0) {
+            $("#filteredLanguages").html(img);
+            $.ajax({
+                type: "POST",
+                url: "/filterlanguages/",
+                data: {
+                    'search_text': $('#filterLanguage').val(),
+                    'csrfmiddlewaretoken': $("input[name=csrfmiddlewaretoken]").val()
+                },
+                success: searchSuccessLanguage,
+                dataType: 'html'
+            });
+        }
+    });
+});
+
+function hideLanguageList() {
+    $('#filteredLanguages').html('');
+}
+
+function searchSuccessLanguage(data, textStatus, jqXHR) {
+    $('#filteredLanguages').html(data);
+}
+
+
 //Add/Remove Song
 function addSong(songId) {
      $.ajax({
@@ -282,6 +314,41 @@ function updateCountryPanel(data, textStatus, jqXHR) {
     $('#countryPanel').html(data);
     loadPlaylist(1);
 }
+
+//Add/Remove Language
+function addLanguage(language) {
+    console.log("in with language = " + language);
+    $.ajax({
+        type: "POST",
+        url: "/addlanguage/",
+        data: {
+            'language_to_add': language,
+            'csrfmiddlewaretoken': $("input[name=csrfmiddlewaretoken]").val()
+        },
+        success: updateLanguagePanel,
+        dataType: 'html'
+    });
+}
+
+function removeLanguage(language) {
+    $.ajax({
+        type: "POST",
+        url: "/removelanguage/",
+        data: {
+            'language_to_remove': language,
+            'csrfmiddlewaretoken': $("input[name=csrfmiddlewaretoken]").val()
+        },
+        success: updateLanguagePanel,
+        dataType: 'html'
+    });
+}
+
+function updateLanguagePanel(data, textStatus, jqXHR) {
+    $('#languagePanel').html(data);
+    loadPlaylist(1);
+}
+
+
 
 //Toast Message Timeout
 $(function () {

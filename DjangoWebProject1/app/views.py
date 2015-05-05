@@ -71,27 +71,30 @@ def about(request):
         'app/about.html',
         context_instance = RequestContext(request,
         {
-            'title':'About',
-            'message':'Your application description page.',
+            'title':'About Us',
             'year':datetime.now().year,
         })
     )
 
 def user(request):
-    context = RequestContext(request)
+    context = RequestContext(request, 
+    {
+        'title':'Music',
+    })
     return render(request, 'app/user.html', context)
 
 def update_playlist(request, do_work):
-    print 'in playlist with do_work = ' + do_work
     song_list = []
     artist_list = []
     genre_list = []
     country_list = []
+    language_list = []
 
     session_songs = []
     artist_songs = []
     genre_songs = []
     country_songs = []
+    language_songs = []
     top_songs = []
 
     final_songs = []
@@ -104,6 +107,9 @@ def update_playlist(request, do_work):
         genre_list = request.session['genreList']
     if request.session.__contains__('countryList'):
         country_list = request.session['countryList']
+    if request.session.__contains__('languageList'):
+        language_list = request.session['languageList']
+
 
     #Logic Part
     max_from_category = 25
@@ -116,44 +122,18 @@ def update_playlist(request, do_work):
 
     if genre_list:
         genre_songs = get_genre_songs_from_session(genre_list, max_from_category)
-    #print country_list
+
     if country_list:
         country_songs = get_country_songs_from_session(country_list, max_from_category)
-    #print country_songs
+
+    if language_list:
+        language_songs = get_language_songs_from_session(language_list, max_from_category)
+
     
-    if not artist_list and not genre_list and not country_list:
+    if not artist_list and not genre_list and not country_list and not language_list:
         top_songs = Songs.objects.order_by('-crawlDelta')[:max_from_category]
     
-    print 'a' + str(len(session_songs))
-    print 'b' + str(len(artist_songs))
-    print 'c' + str(len(genre_songs))
-    print 'd' + str(len(country_songs))
-    print 'e' + str(len(top_songs))
-
-    final_songs = combine_querysets(session_songs, artist_songs, genre_songs, country_songs, top_songs)
-    print 'Success on return with *arg'
-
-    #if not artist_list and not genre_list:
-    #    print 'no cached genre or artist'
-    #    top_songs = Songs.objects.order_by('-crawlDelta')[:max_from_category]
-    #    if song_list:
-    #        final_songs = combine_querysets(top_songs, session_songs)
-    #    else:
-    #        final_songs = top_songs
-    ##Artist OR Genre List is available
-    #else:
-    #    if artist_list:
-    #        artist_songs = get_artist_songs_from_session(artist_list, max_from_category)
-    #        final_songs = artist_songs
-    #    if genre_list:
-    #        genre_songs = get_genre_songs_from_session(genre_list, max_from_category)
-    #        final_songs = genre_songs
-
-    #    if artist_list and genre_list:
-    #        final_songs = combine_querysets(artist_songs, genre_songs, max_from_category)
-        
-    #    if song_list:
-    #        final_songs = combine_querysets(final_songs, session_songs)
+    final_songs = combine_querysets(session_songs, artist_songs, genre_songs, country_songs, language_songs, top_songs)
 
     #Save to session, current playlist
     final_list = []
@@ -168,10 +148,9 @@ def update_playlist(request, do_work):
         
     return render(request, 'app/playlistPartial.html', context)
 
-def combine_querysets(q1, q2, q3, q4, q5):
+def combine_querysets(q1, q2, q3, q4, q5, q6):
 
-    lis = list(set(chain(q1, q2, q3, q4, q5)))
-    print len(lis)
+    lis = list(set(chain(q1, q2, q3, q4, q5, q6)))
     return sorted(chain(lis), key=attrgetter('crawlDelta'), reverse=True)
 
 
@@ -190,11 +169,12 @@ def get_genre_songs_from_session(genre_list, max_results):
         song_list = Genres.objects.filter(name__exact=i).values_list('songId', flat=True)
         q = list(chain(q, Songs.objects.filter(youtubeId__in=song_list).order_by('-crawlDelta')[:25]))
     return q
-    #genre_songs_list = Genres.objects.filter(name__in=genre_list).values_list('songId')
-    #return get_songs_from_session(genre_songs_list)
 
 def get_country_songs_from_session(country_list, max_results):
     return Songs.objects.filter(songCountry__in=country_list).order_by('-crawlDelta')[:max_results]
+
+def get_language_songs_from_session(language_list, max_results):
+    return Songs.objects.filter(songLanguage__in=language_list).order_by('-crawlDelta')[:max_results]
 
 def song_filter(request):
     print "in song filter"
@@ -254,7 +234,7 @@ def get_genres(max_results = 0, starts_with=''):
     print genres_name_list
     return genres_name_list
 
-#COuntry Part
+#Country Part
 def country_filter(request):
     print "in country filter"
     search_text = ''
@@ -273,6 +253,26 @@ def get_countries(starts_with=''):
         countries_name_list = Songs.objects.filter(songCountry__icontains=starts_with).values_list('songCountry', flat=True).distinct()
     print countries_name_list
     return countries_name_list
+
+#Language Part
+def language_filter(request):
+    print "in language filter"
+    search_text = ''
+    if request.method == 'POST':
+        search_text = request.POST['search_text']
+        print search_text
+    suggs = get_languages(search_text)
+    context = RequestContext(request, {
+        'suggs': suggs,
+    })
+    return render(request, 'app/languagesFilterPartial.html', context)
+
+def get_languages(starts_with=''):
+    languages_name_list = []
+    if starts_with is not '':
+        languages_name_list = Songs.objects.filter(songLanguage__icontains=starts_with).values_list('songLanguage', flat=True).distinct()
+    print languages_name_list
+    return languages_name_list
 
 
 def add_song(request):
@@ -442,6 +442,49 @@ def remove_country(request):
         'suggs': request.session['countryList'],
     })
     return render(request, 'app/countryPanelPartial.html', context)
+
+#Language Part
+def add_language(request):
+    print "in language add"
+    language_to_add = ''
+    language_list = []
+    #Check if Session is there
+    if request.session.__contains__('languageList'):
+        language_list = request.session['languageList']
+    if request.method == 'POST':
+        language_to_add = request.POST['language_to_add']
+        if language_to_add not in language_list:
+            language_list.append(language_to_add)
+            request.session['languageList'] = language_list
+    
+    context = RequestContext(request, {
+        'suggs': language_list,
+    })
+    return render(request, 'app/languagePanelPartial.html', context)
+
+
+def remove_language(request):
+    print "in language remove"
+    language_to_remove = ''
+    if request.method == 'POST':
+        language_to_remove = request.POST['language_to_remove']
+        print language_to_remove
+    if request.session.__contains__('languageList'):
+        lis = request.session['languageList']
+        if language_to_remove in lis:
+            lis.remove(language_to_remove)
+            request.session['languageList'] = lis
+    else:
+        new_list = []
+        new_list.append(language_to_remove)
+        request.session['languageList'] = new_list
+    
+    context = RequestContext(request, {
+        'suggs': request.session['languageList'],
+    })
+    return render(request, 'app/languagePanelPartial.html', context)
+
+
 
 
 def yplayer(request, shuffle):

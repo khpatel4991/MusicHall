@@ -2,14 +2,14 @@
     height:100%;
     width: 100%;
     /*background: linear-gradient(90deg, #3AA9B2, #488894); /* Standard syntax (must be last) */
-    font-family: 'Fjalla One', sans-serif;
+    font-family: 'Voces', sans-serif;
     font-weight: 400;
     font-stretch:expanded;
     color:#C71585;
     background: #333 url('http://subtlepatterns.subtlepatterns.netdna-cdn.com/patterns/low_contrast_linen.png');    
 }
 
-h3 {
+h1, h2, h3, h4, h5, h6 {
     font-family: 'Fjalla One', sans-serif;
 }
 

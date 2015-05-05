@@ -54,15 +54,28 @@
         </span>  
     </div>
     <div id="filteredCountries"></div>
+
+    <h3>Pick ur Language</h3>
+    {%csrf_token%}
+    <div class="input-group">
+        <input type="text" class="form-control blackBackground" id="filterLanguage" placeholder="Search Language...">
+        <span class="input-group-btn">
+            <button class="btn btn-default" onclick="hideLanguageList()" type="button">X</button>
+        </span>  
     </div>
+    <div id="filteredLanguages"></div>
+    
+    
+  </div>
 
 
     <div class="col-lg-6">
 
     <button onclick="youtubeThingy(0)" type="button" style="float:right" class="btn btn-success btn-sm ">
         <span class="glyphicon glyphicon-play" aria-hidden="true"></span> Play All
-    </button>   
-        <button onclick="youtubeThingy(1)" type="button" style="float:right" class="btn btn-primary btn-sm ">
+    </button> 
+         
+    <button onclick="youtubeThingy(1)" type="button" style="float:right; margin-right:5px;" class="btn btn-primary btn-sm ">
         <span class="glyphicon glyphicon-random" aria-hidden="true"></span> Shuffle and Play
     </button>
 
@@ -73,19 +86,23 @@
 
 
     <div id="RightPane" class="col-lg-3">            
-
+    <img id="loaderImg" src="{% static 'app/ajax-loader.gif' %}"/>
     <h3>Songs Panel</h3>
-    <div id="songPanel" class="panel panel-primary blackBackground"><img id="loaderImg" src="{% static 'app/ajax-loader.gif' %}" /></div>
+    <div id="songPanel" class="panel panel-primary blackBackground"><img src="{% static 'app/ajax-loader.gif' %}" /></div>
 
     <h3>Artists Panel</h3>
-    <div id="artistPanel" class="panel panel-primary blackBackground"><img id="loaderImg" src="{% static 'app/ajax-loader.gif' %}" /></div>
+    <div id="artistPanel" class="panel panel-primary blackBackground"><img src="{% static 'app/ajax-loader.gif' %}" /></div>
                    
     <h3>Genres Panel</h3>
     <div id="genrePanel" class="panel panel-primary blackBackground"><img src="{% static 'app/ajax-loader.gif' %}" /></div>
 
     <h3>Countries Panel</h3>
     <div id="countryPanel" class="panel panel-primary blackBackground"><img src="{% static 'app/ajax-loader.gif' %}" /></div>
-    </div>
+  
+    <h3>Languages Panel</h3>
+    <div id="languagePanel" class="panel panel-primary blackBackground"><img src="{% static 'app/ajax-loader.gif' %}" /></div>
+
+  </div>
 
 </div>
 
