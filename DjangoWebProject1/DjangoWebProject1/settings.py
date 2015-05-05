@@ -1,6 +1,10 @@
 """
 Django settings for DjangoWebProject1 project.
 """
+try:
+    from db_creds import *
+except ImportError:
+    pass
 
 from os import path
 PROJECT_ROOT = path.dirname(path.abspath(path.dirname(__file__)))
@@ -17,17 +21,6 @@ ADMINS = (
 )
 
 MANAGERS = ADMINS
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'MusicHall',
-        'USER': 'khpatel4991',
-        'PASSWORD': 'password',
-        'HOST': 'musichall-db.cgrqzvmd1vo6.us-east-1.rds.amazonaws.com',
-        'PORT': '3306',
-    }
-}
 
 LOGIN_URL = '/login'
 
@@ -133,6 +126,7 @@ INSTALLED_APPS = (
     'app',
     # Uncomment the next line to enable the admin:
     'django.contrib.admin',
+
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
 )
